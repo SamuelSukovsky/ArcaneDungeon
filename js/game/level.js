@@ -2,6 +2,7 @@
 import Game from '../engine/game.js';
 import Enemy from './enemy.js';
 import Tile from './tile.js';
+import Wall from './wall.js';
 import PlayerUI from './playerUI.js';
 import Collectible from './collectible.js';
 
@@ -14,30 +15,30 @@ class Level extends Game
     // Call the constructor of the superclass (Game) with the canvas ID
     super(canvasId);
 
-    let spawn = this.generate();
+    // Set the maximum dimensions of the map
+    this.mapX = 6;
+    this.mapY = 6;
+    // Set the width of corridors
+    this.mapScale = 3;
+
+    let spawn = this.generate(this.mapX, this.mapY, this.mapScale);
     this.player.resetPlayerState(spawn[0], spawn[1]);
     this.addTile(this.player.pointAt);
     this.addGameObject(this.player);
     
     // Add the player UI object to the game
-    this.addGameObject(new PlayerUI(10, 10));
+    //this.addGameObject(new PlayerUI(10, 10));
 
     // Set the game's camera target to the player
     this.camera.target = this.player;
   }
 
   // Define the generate method, which generates the level and returns the player object
-  generate()
+  generate(mapX, mapY, mapScale)
   {
-    // Set the maximum dimensions of the map
-    const mapX = 6;
-    const mapY = 2;
-    // Set the width of corridors
-    const mapScale = 3;
-
     // Define the possible room types
-    const rooms = ['NE', 'NS', 'NW', 'ES', 'EW', 'SW', 'NES', 'NEW', 'NSW', 'ESW', 'NESW'];
-    const endRooms = ['N', 'E', 'S', 'W'];
+    const corridors = ['NE', 'NS', 'NW', 'ES', 'EW', 'SW', 'NES', 'NEW', 'NSW', 'ESW', 'NESW'];
+    const endCorridors = ['N', 'E', 'S', 'W'];
     
     // Create the map template
     var mapCore = [];
@@ -79,19 +80,18 @@ class Level extends Game
         map[i] = mapCore[i].slice();
       }
       
-      // Place the starting room
+      // Place the starting corridor
       spawnX = Math.floor(Math.random() * mapX) + 1;
       spawnY = Math.floor(Math.random() * mapY) + 1;
-      var availableRooms = this.legalRoomTypes(map, spawnX, spawnY, endRooms);
+      var availableRooms = this.legalRoomTypes(map, spawnX, spawnY, endCorridors);
       map[spawnY][spawnX] = availableRooms[Math.floor(Math.random() * availableRooms.length)];
 
       // Start placing rooms
       var placedRooms = 1;
-      availableRooms = rooms;
-      generated = true;
+      var roomSelection = [];
 
       // While the minimum number of rooms has not been placed
-      while(placedRooms < targetRooms)
+      for(let k = 0; k < (mapX + mapY) / 5; k++)
       {
         var failed = true;
         // For each cell on the map grid
@@ -100,10 +100,10 @@ class Level extends Game
           for(let j = 1; j < mapX + 1; j++)
           {
             // If the cell is empty and has an adjacent room
-            if(map[i][j] == 'O' && this.checkAdjecency(map, j, i))
+            if(map[i][j] == 'O' && this.checkAdjacency(map, j, i) > 0)
             {
               // Get the legal room types for this cell
-              var roomSelection = this.legalRoomTypes(map, j, i, availableRooms);
+              roomSelection = this.legalRoomTypes(map, j, i, corridors);
               // If there are legal room types
               if(roomSelection.length > 0)
               {
@@ -120,19 +120,32 @@ class Level extends Game
         // If the generation cycle has failed
         if(failed)
         {
-          // If all paths are dead ends
-          if(availableRooms.length == rooms.length) 
+          // break cycle
+          break;
+        }
+      }
+
+      for(let i = 1; i < mapY + 1; i++)
+      {
+        for(let j = 1; j < mapX + 1; j++)
+        {
+          // If the cell is empty and has adjecent rooms
+          if(map[i][j] == 'O' && this.checkAdjacency(map, j, i) > 0)
           {
-            // Allow spawning of end rooms
-            availableRooms = availableRooms.concat(endRooms);
-          }
-          else
-          {
-            // Reset the map and start over
-            generated = false;
-            break;
+            // Get the legal room types for this cell
+            var roomSelection = this.legalRoomTypes(map, j, i, endCorridors.concat(corridors));
+            // place corridor with least connections
+            map[i][j] = roomSelection[0];
+            placedRooms++;
           }
         }
+      }
+
+      // If enough rooms have been placed
+      if(placedRooms >= targetRooms)
+      {
+        // End map generation
+        generated = true;
       }
     }
 
@@ -200,33 +213,33 @@ class Level extends Game
     return availableRooms;
   }
 
-  // Define the checkAdjecency method, which returns true if a given cell has a connection from another room
-  checkAdjecency(map, x, y)
+  // Define the checkAdjacency method, which returns true if a given cell has a connection from another room
+  checkAdjacency(map, x, y)
   {
-    // Default adjecent to false
-    var adjecent = false;
+    // Default adjacent to false
+    var adjacent = 0;
     // If the above cell has a south exit, return true
     if(map[y - 1][x].includes('S'))
     {
-      adjecent = true;
+      adjacent++;
     }
     // If the below cell has a north exit, return true
     if(map[y + 1][x].includes('N'))
     {
-      adjecent = true;
+      adjacent++;
     }
     // If the left cell has an east exit, return true
     if(map[y][x - 1].includes('E'))
     {
-      adjecent = true;
+      adjacent++;
     }
     // If the right cell has a west exit, return true
     if(map[y][x + 1].includes('W'))
     {
-      adjecent = true;
+      adjacent++;
     }
-    // Return adjecent
-    return adjecent;
+    // Return adjacent
+    return adjacent;
   }
 
   // Define the spawnRoom method, which spawns tiles for a room at a given location
@@ -235,6 +248,7 @@ class Level extends Game
     // If a room is present
     if(roomType != 'O' && roomType != 'X')
     {
+      let shift = 0;
       // Spawn the room tiles
       for(let i = 0; i < mapScale; i++)
       {
@@ -243,52 +257,134 @@ class Level extends Game
           this.addTile(new Tile(((x * 3 + 1) * mapScale + j), ((y * 3 + 1) * mapScale + i), 'brown', null));
         }
       }
-      // if the room has a north exit
+      // Create room edge walls
+      this.addTile(new Wall(((x * 3 + 1) * mapScale - 1), ((y * 3 + 1) * mapScale - 1), '#222', null));
+      this.addTile(new Wall(((x * 3 + 2) * mapScale), ((y * 3 + 1) * mapScale - 1), '#222', null));
+      this.addTile(new Wall(((x * 3 + 1) * mapScale - 1), ((y * 3 + 2) * mapScale), '#222', null));
+      this.addTile(new Wall(((x * 3 + 2) * mapScale), ((y * 3 + 2) * mapScale), '#222', null));
+
+      // If the room has a north exit
       if(roomType.includes('N'))
       {
         // Spawn the north exit tiles
-        for(let i = 0; i < mapScale; i++)
+        // Spawn the south exit tiles
+        for(let i = -1; i < mapScale + 1; i++)
         {
-          for(let j = 0; j < mapScale; j++)
+          if (i == -1 || i == mapScale)
           {
-            this.addTile(new Tile(((x * 3 + 1) * mapScale + j), ((y * 3) * mapScale + i), 'brown', null));
+            for (let j = 1; j < mapScale; j++)
+            {
+              this.addTile(new Wall(((x * 3 + 1) * mapScale + i), ((y * 3) * mapScale + j - 1), '#222', null));
+            }
+          }
+          else
+          {
+            for(let j = 0; j < mapScale; j++)
+            {
+              this.addTile(new Tile(((x * 3 + 1) * mapScale + i), ((y * 3) * mapScale + j), 'brown', null));
+            }
           }
         }
       }
-      // if the room has a south exit
+      // Else create the north wall
+      else
+      {
+        for(let i = 0; i < mapScale; i++)
+        {
+          this.addTile(new Wall(((x * 3 + 1) * mapScale + i), ((y * 3 + 1) * mapScale - 1), '#222', null));
+        }
+      }
+
+      // If the room has a south exit
       if(roomType.includes('S'))
       {
         // Spawn the south exit tiles
-        for(let i = 0; i < mapScale; i++)
+        for(let i = -1; i < mapScale + 1; i++)
         {
-          for(let j = 0; j < mapScale; j++)
+          if (i == -1 || i == mapScale)
           {
-            this.addTile(new Tile(((x * 3 + 1) * mapScale + j), ((y * 3 + 2) * mapScale + i), 'brown', null));
+            for (let j = 1; j < mapScale; j++)
+            {
+              this.addTile(new Wall(((x * 3 + 1) * mapScale + i), ((y * 3 + 2) * mapScale + j), '#222', null));
+            }
+          }
+          else
+          {
+            for(let j = 0; j < mapScale; j++)
+            {
+              this.addTile(new Tile(((x * 3 + 1) * mapScale + i), ((y * 3 + 2) * mapScale + j), 'brown', null));
+            }
           }
         }
       }
-      // if the room has an east exit
+      // Else create the south wall
+      else
+      {
+        for(let i = 0; i < mapScale; i++)
+        {
+          this.addTile(new Wall(((x * 3 + 1) * mapScale + i), ((y * 3 + 2) * mapScale), '#222', null));
+        }
+      }
+       
+      // If the room has an east exit
       if(roomType.includes('E'))
       {
         // Spawn the east exit tiles
-        for(let i = 0; i < mapScale; i++)
+        for(let i = -1; i < mapScale + 1; i++)
         {
-          for(let j = 0; j < mapScale; j++)
+          if (i == -1 || i == mapScale)
           {
-            this.addTile(new Tile(((x * 3 + 2) * mapScale + j), ((y * 3 + 1) * mapScale + i), 'brown', null));
+            for (let j = 1; j < mapScale; j++)
+            {
+              this.addTile(new Wall(((x * 3 + 2) * mapScale + j), ((y * 3 + 1) * mapScale + i), '#222', null));
+            }
+          }
+          else
+          {
+            for(let j = 0; j < mapScale; j++)
+            {
+              this.addTile(new Tile(((x * 3 + 2) * mapScale + j), ((y * 3 + 1) * mapScale + i), 'brown', null));
+            }
           }
         }
       }
-      // if the room has a west exit
+      // Else create the east wall
+      else
+      {
+        for(let i = 0; i < mapScale; i++)
+        {
+          this.addTile(new Wall(((x * 3 + 2) * mapScale), ((y * 3 + 1) * mapScale + i), '#222', null));
+        }
+      }
+
+      // If the room has a west exit
       if(roomType.includes('W'))
       {
         // Spawn the west exit tiles
+        for(let i = -1; i < mapScale + 1; i++)
+        {
+          if (i == -1 || i == mapScale)
+          {
+            for (let j = 0; j < mapScale - 1; j++)
+            {
+              this.addTile(new Wall(((x * 3) * mapScale + j), ((y * 3 + 1) * mapScale + i), '#222', null));
+            }
+          }
+          else
+          {
+            for(let j = 0; j < mapScale; j++)
+            {
+              this.addTile(new Tile(((x * 3) * mapScale + j), ((y * 3 + 1) * mapScale + i), 'brown', null));
+            }
+          } 
+        }
+      }
+      // Else create the west wall
+      else
+      {
         for(let i = 0; i < mapScale; i++)
         {
-          for(let j = 0; j < mapScale; j++)
-          {
-            this.addTile(new Tile(((x * 3) * mapScale + j), ((y * 3 + 1) * mapScale + i), 'brown', null));
-          }
+          this.addTile(new Wall(((x * 3 + 1) * mapScale - 1), ((y * 3 + 1) * mapScale + i), '#222', null));
         }
       }
     }

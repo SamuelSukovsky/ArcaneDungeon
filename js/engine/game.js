@@ -67,10 +67,16 @@ class Game
       if(this.timeToPause <= this.deltaTime)
       {
         this.deltaTime = this.timeToPause;
+        // Update all game objects and the camera.
+        this.update();
+        this.pause();
+      }
+      else
+      {
+        // Update all game objects and the camera.
+        this.update();
       }
       this.timeToPause -= this.deltaTime;
-      // Update all game objects and the camera.
-      this.update();
     }
 
     this.camera.update();
@@ -93,6 +99,16 @@ class Game
     this.gameObjects = this.gameObjects.filter(obj => !this.gameObjectsToRemove.includes(obj));
     // Clear the list of game objects to remove.
     this.gameObjectsToRemove = [];
+  }
+
+  // This method calls end of turn methods of all game objects.
+  pause()
+  {
+    // Call each game object's update method with the delta time.
+    for (const gameObject of this.gameObjects)
+    {
+      gameObject.endTurn(this.deltaTime);
+    }
   }
 
   // This method draws all the game objects on the canvas.

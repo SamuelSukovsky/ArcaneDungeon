@@ -43,6 +43,8 @@ class GameObject
         component.draw(ctx);
       }
     }
+
+    reset(){}
   
     // The getComponent method is used to get the first component of this GameObject that is an instance of the given class.
     // componentClass is the class of the component to get.

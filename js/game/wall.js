@@ -1,5 +1,5 @@
 // Import the GameObject class from the 'engine' directory
-import Tile from '../engine/tile.js';
+import Tile from './tile.js';
 
 // Import the Physics class from the 'engine' directory
 import Physics from '../engine/physics.js';
@@ -9,9 +9,13 @@ import {Images} from '../engine/resources.js';
 
 class Wall extends Tile
 {
-    constructor(x, y, colour)
+    constructor(x, y, colour, image = null)
     {
-        super(x, y, colour); // Call parent's constructor
+        // Call parent's constructor
+        super(x, y, colour, image);
         this.addComponent(new Physics({x:0, y:0}, {x:0, y:0}));
     }
 }
+  
+// The Wall class is exported as the default export of this module.
+export default Wall;

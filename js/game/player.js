@@ -8,6 +8,7 @@ import Enemy from './enemy.js';
 import Collectible from './collectible.js';
 import ParticleSystem from '../engine/particleSystem.js';
 import Tile from './tile.js';
+import Wall from './wall.js';
 
 // Defining a class Player that extends GameObject
 class Player extends GameObject
@@ -25,14 +26,15 @@ class Player extends GameObject
     this.direction = 1;
     this.lives = 3;
     this.score = 0;
-    this.agility = 3;
+    this.agility = 2;
+    this.speed = 4;
     this.directionVector = { x: 0, y: 0};
 
     this.isJumping = false;
     this.jumpForce = 400;
     this.jumpTime = 0.3;
     this.jumpTimer = 0;
-    this.isInvulnerable = false;
+    this.isGhost = false;
     this.isGamepadMovement = false;
     this.isGamepadJump = false;
   }
@@ -43,12 +45,11 @@ class Player extends GameObject
     const input = this.getComponent(Input); // Get input component
 
     this.handleGamepadInput(input);
-    const speed = 4;
     var action = false;
     
     this.directionVector = { x: input.mousePos.x, y: input.mousePos.y };
     let distance = Math.sqrt(this.directionVector.x * this.directionVector.x + this.directionVector.y * this.directionVector.y)
-    if(distance > this.agility * speed * 16)
+    if(distance > this.agility * this.speed * 16)
     {
       this.directionVector = { x: Math.floor(this.directionVector.x / distance * this.agility * 64), y: Math.floor(this.directionVector.y / distance * this.agility * 64) };
     }
@@ -57,10 +58,11 @@ class Player extends GameObject
 
     if(input.isMouseDown(0))
     {
-      physics.velocity.x = this.directionVector.x * speed;
-      physics.velocity.y = this.directionVector.y * speed;
+      physics.velocity.x = this.directionVector.x * this.speed;
+      physics.velocity.y = this.directionVector.y * this.speed;
       this.direction = -this.directionVector.x / Math.abs(this.directionVector.x);
       action = true;
+      console.log(this.isGhost);
     }
 
     return action;
@@ -80,6 +82,19 @@ class Player extends GameObject
     if (this.isJumping)
     {
       this.updateJump(deltaTime);
+    }
+
+     // Handle collisions with collectibles
+     const walls = this.game.tiles.filter((obj) => obj instanceof Wall);
+     if(!this.isGhost)
+     {
+      for (const wall of walls)
+      {
+        if (physics.isColliding(wall.getComponent(Physics)))
+        {
+          this.bounce();
+        }
+      }
     }
 
     // Handle collisions with collectibles
@@ -110,6 +125,11 @@ class Player extends GameObject
     }
 
     super.update(deltaTime);
+  }
+
+  endTurn()
+  {
+    this.isGhost = false;
   }
 
   handleGamepadInput(input)
@@ -191,6 +211,11 @@ class Player extends GameObject
     this.emitCollectParticles(collectible);
   }
 
+  bounce()
+  {
+    this.isGhost = true;
+    this.getComponent(Physics).velocity = { x: (Math.round(this.x) - this.x) / this.game.timeToPause, y: (Math.round(this.y) - this.y) / this.game.timeToPause };
+  }
   emitCollectParticles()
   {
     // Create a particle system at the player's position when a collectible is collected
