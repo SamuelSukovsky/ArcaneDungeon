@@ -2,9 +2,11 @@
 import Component from './component.js';
 
 // Define the UI class which extends the Component parent class.
-class UI extends Component {
+class UI extends Component
+{
   // The constructor of the UI class.
-  constructor(text, x, y, font = '20px Arial', color = 'white', textAlign = 'left', textBaseline = 'top') {
+  constructor(text, x, y, font = '20px Arial', color = 'white', textAlign = 'left', textBaseline = 'top')
+  {
     super(); // Call the constructor of the parent class.
 
     // Assign the given parameters to instance variables.
@@ -18,7 +20,8 @@ class UI extends Component {
   }
 
   // The draw method of the UI class.
-  draw(ctx) {
+  draw(ctx)
+  {
     // Get the camera from the game associated with the current object.
     const camera = this.gameObject.game.camera;
 
@@ -33,7 +36,8 @@ class UI extends Component {
   }
 
   // A method to set the text of the UI component.
-  setText(newText) {
+  setText(newText)
+  {
     // Set the text instance variable to the given new text.
     this.text = newText;
   }

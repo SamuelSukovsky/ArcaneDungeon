@@ -33,6 +33,8 @@ class GameObject
         component.update(deltaTime);
       }
     }
+
+    start(){}
   
     // The draw method is called once per game frame, after the update method, and calls the draw method on all of this GameObject's components.
     // ctx is the canvas 2D context that the components should draw themselves onto.
@@ -44,7 +46,7 @@ class GameObject
       }
     }
 
-    reset(){}
+    endTurn(){}
   
     // The getComponent method is used to get the first component of this GameObject that is an instance of the given class.
     // componentClass is the class of the component to get.

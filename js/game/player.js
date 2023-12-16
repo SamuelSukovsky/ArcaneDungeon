@@ -26,9 +26,15 @@ class Player extends GameObject
     this.direction = 1;
     this.lives = 3;
     this.score = 0;
-    this.agility = 2;
     this.speed = 4;
     this.directionVector = { x: 0, y: 0};
+    
+    this.baseStat = 3;
+    this.stats = [];
+    this.statIncrease = [1, 2];
+
+    this.maxHP = 30;
+    this.hp = 30;
 
     this.isJumping = false;
     this.jumpForce = 400;
@@ -37,6 +43,23 @@ class Player extends GameObject
     this.isGhost = false;
     this.isGamepadMovement = false;
     this.isGamepadJump = false;
+  }
+
+  start()
+  {
+    this.stats = [this.baseStat, this.baseStat, this.baseStat];
+    
+    while(this.statIncrease.length > 0)
+    {
+      let index = Math.floor(Math.random() * 3);
+      if(this.stats[index] == this.baseStat)
+      {
+        this.stats[index] += this.statIncrease.shift();
+      }
+    }
+
+    this.maxHP = this.stats[0] * 10;
+    this.hp = this.maxHP;
   }
 
   checkInput()
@@ -49,9 +72,9 @@ class Player extends GameObject
     
     this.directionVector = { x: input.mousePos.x, y: input.mousePos.y };
     let distance = Math.sqrt(this.directionVector.x * this.directionVector.x + this.directionVector.y * this.directionVector.y)
-    if(distance > this.agility * this.speed * 16)
+    if(distance > this.stats[1] * this.speed * 8)
     {
-      this.directionVector = { x: Math.floor(this.directionVector.x / distance * this.agility * 64), y: Math.floor(this.directionVector.y / distance * this.agility * 64) };
+      this.directionVector = { x: Math.floor(this.directionVector.x / distance * this.stats[1] * 32), y: Math.floor(this.directionVector.y / distance * this.stats[1] * 32) };
     }
     this.directionVector = { x: Math.floor((this.directionVector.x + 32) / 64), y: Math.floor((this.directionVector.y + 32) / 64) };
     this.pointAt.moveTo(this.x + this.directionVector.x, this.y + this.directionVector.y);
@@ -62,14 +85,13 @@ class Player extends GameObject
       physics.velocity.y = this.directionVector.y * this.speed;
       this.direction = -this.directionVector.x / Math.abs(this.directionVector.x);
       action = true;
-      console.log(this.isGhost);
     }
 
     return action;
   }
 
   // The update function runs every frame and contains game logic
-  update(deltaTime, timeToPause)
+  update(deltaTime)
   {
     const physics = this.getComponent(Physics); // Get physics component
     
@@ -216,6 +238,7 @@ class Player extends GameObject
     this.isGhost = true;
     this.getComponent(Physics).velocity = { x: (Math.round(this.x) - this.x) / this.game.timeToPause, y: (Math.round(this.y) - this.y) / this.game.timeToPause };
   }
+  
   emitCollectParticles()
   {
     // Create a particle system at the player's position when a collectible is collected

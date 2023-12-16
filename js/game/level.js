@@ -27,7 +27,7 @@ class Level extends Game
     this.addGameObject(this.player);
     
     // Add the player UI object to the game
-    //this.addGameObject(new PlayerUI(10, 10));
+    this.addGameObject(new PlayerUI(10, 10));
 
     // Set the game's camera target to the player
     this.camera.target = this.player;

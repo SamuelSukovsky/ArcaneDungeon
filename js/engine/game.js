@@ -150,6 +150,7 @@ class Game
   {
     // Set the game object's game property to this game instance.
     gameObject.game = this;
+    gameObject.start();
     // Add the game object to the array of game objects.
     this.gameObjects.push(gameObject);
   }
