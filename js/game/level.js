@@ -1,6 +1,6 @@
 // Import necessary classes and resources
 import Game from '../engine/game.js';
-import Enemy from './enemy.js';
+import Goblin from './goblin.js';
 import Tile from './tile.js';
 import Wall from './wall.js';
 import PlayerUI from './playerUI.js';
@@ -21,13 +21,19 @@ class Level extends Game
     // Set the width of corridors
     this.mapScale = 3;
 
+    this.enemies = [];
+
     let spawn = this.generate(this.mapX, this.mapY, this.mapScale);
     this.player.resetPlayerState(spawn[0], spawn[1]);
-    this.addTile(this.player.pointAt);
     this.addGameObject(this.player);
     
     // Add the player UI object to the game
     this.addGameObject(new PlayerUI(10, 10));
+
+    for(const enemy of this.enemies)
+    {
+      this.addGameObject(enemy);
+    }
 
     // Set the game's camera target to the player
     this.camera.target = this.player;
@@ -254,14 +260,16 @@ class Level extends Game
       {
         for(let j = 0; j < mapScale; j++)
         {
-          this.addTile(new Tile(((x * 3 + 1) * mapScale + j), ((y * 3 + 1) * mapScale + i), 'brown', null));
+          this.addTile(new Tile(((x * 3 + 1) * mapScale + j), ((y * 3 + 1) * mapScale + i), 'brown'));
         }
       }
       // Create room edge walls
-      this.addTile(new Wall(((x * 3 + 1) * mapScale - 1), ((y * 3 + 1) * mapScale - 1), '#222', null));
-      this.addTile(new Wall(((x * 3 + 2) * mapScale), ((y * 3 + 1) * mapScale - 1), '#222', null));
-      this.addTile(new Wall(((x * 3 + 1) * mapScale - 1), ((y * 3 + 2) * mapScale), '#222', null));
-      this.addTile(new Wall(((x * 3 + 2) * mapScale), ((y * 3 + 2) * mapScale), '#222', null));
+      this.addTile(new Wall(((x * 3 + 1) * mapScale - 1), ((y * 3 + 1) * mapScale - 1), '#222'));
+      this.addTile(new Wall(((x * 3 + 2) * mapScale), ((y * 3 + 1) * mapScale - 1), '#222'));
+      this.addTile(new Wall(((x * 3 + 1) * mapScale - 1), ((y * 3 + 2) * mapScale), '#222'));
+      this.addTile(new Wall(((x * 3 + 2) * mapScale), ((y * 3 + 2) * mapScale), '#222'));
+
+      this.enemies.push(new Goblin(((x * 3 + 1) * mapScale + Math.floor(mapScale / 2)), ((y * 3 + 1) * mapScale + Math.floor(mapScale / 2))))
 
       // If the room has a north exit
       if(roomType.includes('N'))
@@ -274,14 +282,14 @@ class Level extends Game
           {
             for (let j = 1; j < mapScale; j++)
             {
-              this.addTile(new Wall(((x * 3 + 1) * mapScale + i), ((y * 3) * mapScale + j - 1), '#222', null));
+              this.addTile(new Wall(((x * 3 + 1) * mapScale + i), ((y * 3) * mapScale + j - 1), '#222'));
             }
           }
           else
           {
             for(let j = 0; j < mapScale; j++)
             {
-              this.addTile(new Tile(((x * 3 + 1) * mapScale + i), ((y * 3) * mapScale + j), 'brown', null));
+              this.addTile(new Tile(((x * 3 + 1) * mapScale + i), ((y * 3) * mapScale + j), 'brown'));
             }
           }
         }
@@ -291,7 +299,7 @@ class Level extends Game
       {
         for(let i = 0; i < mapScale; i++)
         {
-          this.addTile(new Wall(((x * 3 + 1) * mapScale + i), ((y * 3 + 1) * mapScale - 1), '#222', null));
+          this.addTile(new Wall(((x * 3 + 1) * mapScale + i), ((y * 3 + 1) * mapScale - 1), '#222'));
         }
       }
 
@@ -305,14 +313,14 @@ class Level extends Game
           {
             for (let j = 1; j < mapScale; j++)
             {
-              this.addTile(new Wall(((x * 3 + 1) * mapScale + i), ((y * 3 + 2) * mapScale + j), '#222', null));
+              this.addTile(new Wall(((x * 3 + 1) * mapScale + i), ((y * 3 + 2) * mapScale + j), '#222'));
             }
           }
           else
           {
             for(let j = 0; j < mapScale; j++)
             {
-              this.addTile(new Tile(((x * 3 + 1) * mapScale + i), ((y * 3 + 2) * mapScale + j), 'brown', null));
+              this.addTile(new Tile(((x * 3 + 1) * mapScale + i), ((y * 3 + 2) * mapScale + j), 'brown'));
             }
           }
         }
@@ -322,7 +330,7 @@ class Level extends Game
       {
         for(let i = 0; i < mapScale; i++)
         {
-          this.addTile(new Wall(((x * 3 + 1) * mapScale + i), ((y * 3 + 2) * mapScale), '#222', null));
+          this.addTile(new Wall(((x * 3 + 1) * mapScale + i), ((y * 3 + 2) * mapScale), '#222'));
         }
       }
        
@@ -336,14 +344,14 @@ class Level extends Game
           {
             for (let j = 1; j < mapScale; j++)
             {
-              this.addTile(new Wall(((x * 3 + 2) * mapScale + j), ((y * 3 + 1) * mapScale + i), '#222', null));
+              this.addTile(new Wall(((x * 3 + 2) * mapScale + j), ((y * 3 + 1) * mapScale + i), '#222'));
             }
           }
           else
           {
             for(let j = 0; j < mapScale; j++)
             {
-              this.addTile(new Tile(((x * 3 + 2) * mapScale + j), ((y * 3 + 1) * mapScale + i), 'brown', null));
+              this.addTile(new Tile(((x * 3 + 2) * mapScale + j), ((y * 3 + 1) * mapScale + i), 'brown'));
             }
           }
         }
@@ -353,7 +361,7 @@ class Level extends Game
       {
         for(let i = 0; i < mapScale; i++)
         {
-          this.addTile(new Wall(((x * 3 + 2) * mapScale), ((y * 3 + 1) * mapScale + i), '#222', null));
+          this.addTile(new Wall(((x * 3 + 2) * mapScale), ((y * 3 + 1) * mapScale + i), '#222'));
         }
       }
 
@@ -367,14 +375,14 @@ class Level extends Game
           {
             for (let j = 0; j < mapScale - 1; j++)
             {
-              this.addTile(new Wall(((x * 3) * mapScale + j), ((y * 3 + 1) * mapScale + i), '#222', null));
+              this.addTile(new Wall(((x * 3) * mapScale + j), ((y * 3 + 1) * mapScale + i), '#222'));
             }
           }
           else
           {
             for(let j = 0; j < mapScale; j++)
             {
-              this.addTile(new Tile(((x * 3) * mapScale + j), ((y * 3 + 1) * mapScale + i), 'brown', null));
+              this.addTile(new Tile(((x * 3) * mapScale + j), ((y * 3 + 1) * mapScale + i), 'brown'));
             }
           } 
         }
@@ -384,7 +392,7 @@ class Level extends Game
       {
         for(let i = 0; i < mapScale; i++)
         {
-          this.addTile(new Wall(((x * 3 + 1) * mapScale - 1), ((y * 3 + 1) * mapScale + i), '#222', null));
+          this.addTile(new Wall(((x * 3 + 1) * mapScale - 1), ((y * 3 + 1) * mapScale + i), '#222'));
         }
       }
     }

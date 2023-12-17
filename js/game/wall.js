@@ -12,7 +12,7 @@ class Wall extends Tile
     constructor(x, y, colour, image = null)
     {
         // Call parent's constructor
-        super(x, y, colour, image);
+        super(x, y, colour, 64, 64, image);
         this.addComponent(new Physics({x:0, y:0}, {x:0, y:0}));
     }
 }

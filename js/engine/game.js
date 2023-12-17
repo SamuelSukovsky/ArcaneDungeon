@@ -22,8 +22,6 @@ class Game
     this.lastFrameTime = 0;
     // The amount of time that passed between the last frame and the current frame.
     this.deltaTime = 0;
-    // Adjust the size of the canvas to match the window size.
-    this.resizeCanvas();
     // The game is paused by default.
     this.timeToPause = 0;
     // Add an event listener to resize the canvas whenever the window size changes.
@@ -31,6 +29,8 @@ class Game
     // Instantiate a new camera without a target and with dimensions equal to the canvas size.
     this.camera = new Camera(null, this.canvas.width, this.canvas.height);
     this.player = new Player(0, 0);
+    // Adjust the size of the canvas to match the window size.
+    this.resizeCanvas();
   }
 
   // This method resizes the canvas to fill the window, with a small margin.
@@ -38,6 +38,8 @@ class Game
   {
     this.canvas.width = window.innerWidth - 50;
     this.canvas.height = window.innerHeight - 50;
+    this.camera.width = this.canvas.width;
+    this.camera.height = this.canvas.height;
   }
 
   // This method starts the game loop.
@@ -97,6 +99,8 @@ class Game
     }
     // Filter out game objects that are marked for removal.
     this.gameObjects = this.gameObjects.filter(obj => !this.gameObjectsToRemove.includes(obj));
+    // Filter out game objects that are marked for removal.
+    this.tiles = this.tiles.filter(obj => !this.gameObjectsToRemove.includes(obj));
     // Clear the list of game objects to remove.
     this.gameObjectsToRemove = [];
   }
@@ -109,6 +113,10 @@ class Game
     {
       gameObject.endTurn(this.deltaTime);
     }
+    // Filter out game objects that are marked for removal.
+    this.gameObjects = this.gameObjects.filter(obj => !this.gameObjectsToRemove.includes(obj));
+    // Clear the list of game objects to remove.
+    this.gameObjectsToRemove = [];
   }
 
   // This method draws all the game objects on the canvas.

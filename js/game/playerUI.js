@@ -10,11 +10,11 @@ class PlayerUI extends GameObject
     super(x, y); // Call the constructor of the GameObject class.
 
     // Create a new UI component with initial text and add it to this object's components.
-    this.strengthDisplay = new UI('Strength: 3', x, y);
+    this.strengthDisplay = new UI('Strength: 3', x, y, '20px Arial', '#c00');
     this.addComponent(this.strengthDisplay);
-    this.agilityDisplay = new UI('Agility: 3', x, y + 22);
+    this.agilityDisplay = new UI('Agility: 3', x, y + 22, '20px Arial', '#0c0');
     this.addComponent(this.agilityDisplay);
-    this.intelligenceDisplay = new UI('Intelligence: 3', x, y + 44);
+    this.intelligenceDisplay = new UI('Intelligence: 3', x, y + 44, '20px Arial', '#00c');
     this.addComponent(this.intelligenceDisplay);
     this.player;
   }
@@ -23,6 +23,9 @@ class PlayerUI extends GameObject
   {
     // Find the player object in the game's gameObjects array.
     this.player = this.game.gameObjects.find((obj) => obj instanceof Player);
+    this.strengthDisplay.setText(`Strength: ${this.player.stats[0]}`);
+    this.agilityDisplay.setText(`Agility: ${this.player.stats[1]}`);
+    this.intelligenceDisplay.setText(`Intelligence: ${this.player.stats[2]}`);
   }
   // The update method is called every frame.
   update(deltaTime)

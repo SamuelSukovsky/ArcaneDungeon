@@ -46,7 +46,11 @@ class GameObject
       }
     }
 
-    endTurn(){}
+    endTurn()
+    {
+      this.x = Math.round(this.x);
+      this.y = Math.round(this.y);
+    }
   
     // The getComponent method is used to get the first component of this GameObject that is an instance of the given class.
     // componentClass is the class of the component to get.
@@ -55,6 +59,8 @@ class GameObject
       // Find the first component that is an instance of componentClass.
       return this.components.find((component) => component instanceof componentClass);
     }
+
+    takeDamage(damage, damageType){}
   }
   
   // The GameObject class is exported as the default export of this module.

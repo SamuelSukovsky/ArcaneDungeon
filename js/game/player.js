@@ -9,6 +9,8 @@ import Collectible from './collectible.js';
 import ParticleSystem from '../engine/particleSystem.js';
 import Tile from './tile.js';
 import Wall from './wall.js';
+import Weapon from './weapon.js';
+import Attack from './attack.js';
 
 // Defining a class Player that extends GameObject
 class Player extends GameObject
@@ -21,26 +23,26 @@ class Player extends GameObject
     this.addComponent(this.renderer);
     this.addComponent(new Physics({ x: 0, y: 0 }, { x: 0, y: 0 })); // Add physics
     this.addComponent(new Input()); // Add input for handling user input
-    this.pointAt = new Tile(0, 0, 'red');
+    this.moveTo = new Tile(-10, -10, 'red');
+    this.attack = new Tile(-10, -10, '#bbb');
     // Initialize all the player specific properties
     this.direction = 1;
     this.lives = 3;
     this.score = 0;
     this.speed = 4;
     this.directionVector = { x: 0, y: 0};
+    this.isGhost = false;
     
     this.baseStat = 3;
     this.stats = [];
     this.statIncrease = [1, 2];
+    
+    this.equipedWeapon = new Weapon({ min: 7, max: 9 }, 0, 'sharp', 1);
+    this.attackVector = { x: 0, y: 0};
 
     this.maxHP = 30;
     this.hp = 30;
-
-    this.isJumping = false;
-    this.jumpForce = 400;
-    this.jumpTime = 0.3;
-    this.jumpTimer = 0;
-    this.isGhost = false;
+    
     this.isGamepadMovement = false;
     this.isGamepadJump = false;
   }
@@ -48,7 +50,6 @@ class Player extends GameObject
   start()
   {
     this.stats = [this.baseStat, this.baseStat, this.baseStat];
-    
     while(this.statIncrease.length > 0)
     {
       let index = Math.floor(Math.random() * 3);
@@ -60,6 +61,9 @@ class Player extends GameObject
 
     this.maxHP = this.stats[0] * 10;
     this.hp = this.maxHP;
+
+    this.game.addTile(this.moveTo);
+    this.game.addTile(this.attack);
   }
 
   checkInput()
@@ -77,13 +81,32 @@ class Player extends GameObject
       this.directionVector = { x: Math.floor(this.directionVector.x / distance * this.stats[1] * 32), y: Math.floor(this.directionVector.y / distance * this.stats[1] * 32) };
     }
     this.directionVector = { x: Math.floor((this.directionVector.x + 32) / 64), y: Math.floor((this.directionVector.y + 32) / 64) };
-    this.pointAt.moveTo(this.x + this.directionVector.x, this.y + this.directionVector.y);
+    this.moveTo.moveTo(this.x + this.directionVector.x, this.y + this.directionVector.y);
+    
+    this.attackVector = { x: input.mousePos.x, y: input.mousePos.y };
+    distance = Math.sqrt(this.attackVector.x * this.attackVector.x + this.attackVector.y * this.attackVector.y)
+    if(distance > this.equipedWeapon.range)
+    {
+      this.attackVector = { x: this.attackVector.x / distance * this.equipedWeapon.range, y: this.attackVector.y / distance * this.equipedWeapon.range };
+    }
+    this.attackVector = { x: Math.floor(this.attackVector.x + .5), y: Math.floor(this.attackVector.y + .5) };
+    this.attack.moveTo(this.x + this.attackVector.x, this.y + this.attackVector.y);
 
     if(input.isMouseDown(0))
     {
       physics.velocity.x = this.directionVector.x * this.speed;
       physics.velocity.y = this.directionVector.y * this.speed;
       this.direction = -this.directionVector.x / Math.abs(this.directionVector.x);
+      this.attack.moveTo(-10, -10)
+      action = true;
+    }
+
+    if(input.isMouseDown(2))
+    {
+      this.moveTo.moveTo(-10, -10);
+      let damage = this.equipedWeapon.damage.min + Math.floor(Math.random() * (this.equipedWeapon.damage.max - this.equipedWeapon.damage.min));
+      this.game.addGameObject(new Attack(this.x + this.attackVector.x, this.y + this.attackVector.y, '#ccc', null, this, damage, this.equipedWeapon.damageType));
+
       action = true;
     }
 
@@ -95,18 +118,7 @@ class Player extends GameObject
   {
     const physics = this.getComponent(Physics); // Get physics component
     
-    // Handle player jumping
-    /* if (!this.isGamepadJump && input.isKeyDown('ArrowUp'))
-    {
-      this.startJump();
-    } */
-
-    if (this.isJumping)
-    {
-      this.updateJump(deltaTime);
-    }
-
-     // Handle collisions with collectibles
+     // Handle collisions with walls
      const walls = this.game.tiles.filter((obj) => obj instanceof Wall);
      if(!this.isGhost)
      {
@@ -151,7 +163,12 @@ class Player extends GameObject
 
   endTurn()
   {
+    const physics = this.getComponent(Physics)
+    physics.velocity.x = 0;
+    physics.velocity.y = 0;
     this.isGhost = false;
+
+    super.endTurn();
   }
 
   handleGamepadInput(input)
@@ -192,24 +209,6 @@ class Player extends GameObject
         this.isGamepadJump = true;
         this.startJump();
       }
-    }
-  }
-
-  startJump()
-  {
-    // Initiate a jump
-      this.isJumping = true;
-      this.jumpTimer = this.jumpTime;
-      this.getComponent(Physics).velocity.y = -this.jumpForce;
-  }
-  
-  updateJump(deltaTime)
-  {
-    // Updates the jump progress over time
-    this.jumpTimer -= deltaTime;
-    if (this.jumpTimer <= 0 || this.getComponent(Physics).velocity.y > 0)
-    {
-      this.isJumping = false;
     }
   }
 
