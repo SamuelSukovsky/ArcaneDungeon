@@ -221,13 +221,9 @@ class Player extends GameObject
         this.collidedWithEnemy();
       }
     }
-    
 
     // Scan the area around the player based on Intelligence
-    this.scan(1 + this.stats[2])
-    // Make the directional indicators visible
-    this.moveTo.changeVisibility(2);
-    this.target.changeVisibility(2);
+    this.scan(1 + this.stats[2]);
 
     // Call the update method of the superclass
     super.update(deltaTime);
@@ -236,6 +232,9 @@ class Player extends GameObject
   // The endTurn function runs at the end of the turn
   endTurn()
   {
+    // Make the directional indicators visible
+    this.moveTo.changeVisibility(2);
+    this.target.changeVisibility(2);
     const physics = this.getComponent(Physics)   // Get physics component
     // Set the player's velocity to 0
     physics.velocity.x = 0;

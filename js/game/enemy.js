@@ -94,15 +94,18 @@ class Enemy extends GameObject
     // Get the Physics component of this enemy
     const physics = this.getComponent(Physics);
 
-    // Handle collisions with walls
-    const walls = this.game.tiles.filter((obj) => obj instanceof Wall);
-    if(!this.isGhost)
+    if (this.alert)
     {
-      for (const wall of walls)
+      // Handle collisions with walls
+      const walls = this.game.tiles.filter((obj) => obj instanceof Wall);
+      if(!this.isGhost)
       {
-        if (physics.isColliding(wall.getComponent(Physics)))
+        for (const wall of walls)
         {
-          this.bounce();
+          if (physics.isColliding(wall.getComponent(Physics)))
+          {
+            this.bounce();
+          }
         }
       }
     }

@@ -60,12 +60,6 @@ class PlayerUI extends GameObject
 
     // Set the visibility of the UI to 2 so it is always drawn.
     this.visibility = 2;
-    // Get the canvas height.
-    const height = this.game.canvas.height;
-
-    // Set the y-coordinate of the stamina and health bars to be at the bottom of the screen.
-    this.staminaBar.y = height - 64;
-    this.healthBar.y = height - 32;
   }
 }
 
