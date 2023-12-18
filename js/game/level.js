@@ -4,7 +4,6 @@ import Goblin from './goblin.js';
 import Tile from './tile.js';
 import Wall from './wall.js';
 import PlayerUI from './playerUI.js';
-import Collectible from './collectible.js';
 
 // Define a class Level that extends the Game class from the engine
 class Level extends Game

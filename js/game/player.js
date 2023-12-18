@@ -5,7 +5,6 @@ import Physics from '../engine/physics.js';
 import Input from '../engine/input.js';
 import { Images } from '../engine/resources.js';
 import Enemy from './enemy.js';
-import Collectible from './collectible.js';
 import ParticleSystem from '../engine/particleSystem.js';
 import Tile from './tile.js';
 import Wall from './wall.js';
@@ -212,19 +211,6 @@ class Player extends GameObject
         }
       }
     }
-
-    // Handle collisions with collectibles
-    /*
-    const collectibles = this.game.gameObjects.filter((obj) => obj instanceof Collectible);
-    for (const collectible of collectibles)
-    {
-      if (physics.isColliding(collectible.getComponent(Physics)))
-      {
-        this.collect(collectible);
-        this.game.removeGameObject(collectible);
-      }
-    }
-    */
   
     // Handle collisions with enemies
     const enemies = this.game.gameObjects.filter((obj) => obj instanceof Enemy);
@@ -315,6 +301,7 @@ class Player extends GameObject
     {
       this.hp += this.stamina;
       this.stamina = 0;
+      this.emitBloodParticles();
     }
     // If the player's hp is less than or equal to 0, display game over message and reload the page
     if(this.hp <= 0)
@@ -395,14 +382,12 @@ class Player extends GameObject
     }
   }
   
-  /*
-  emitCollectParticles()
+  emitBloodParticles()
   {
-    // Create a particle system at the player's position when a collectible is collected
-    const particleSystem = new ParticleSystem(this.x, this.y, 'yellow', 20, 1, 0.5);
+    // Create a particle system at the player's position they take health damage
+    const particleSystem = new ParticleSystem(this.x + .5, this.y + .5, '#800', 20, .1, 0.05);
     this.game.addGameObject(particleSystem);
   }
-  */
 
   resetPlayerState(x, y)
   {

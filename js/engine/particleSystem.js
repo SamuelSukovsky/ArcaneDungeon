@@ -4,7 +4,8 @@ import Particle from './particle.js';
 import Physics from '../engine/physics.js';
 
 // The ParticleSystem class extends GameObject and is responsible for creating and managing a system of particles.
-class ParticleSystem extends GameObject {
+class ParticleSystem extends GameObject 
+{
   // The constructor method initializes a new instance of the ParticleSystem class.
   constructor(x, y, color, count, lifeDuration, emitDuration) {
     // Call the constructor of the parent class (GameObject) and pass the position of the particle system.
@@ -29,8 +30,6 @@ class ParticleSystem extends GameObject {
       // If the emit duration has run out, remove the particle system from the game.
       this.game.removeGameObject(this);
     }
-    // Call the update method of the parent class (GameObject), which will update all of the system's components.
-    super.update(deltaTime);
   }
 
   // The emitParticles method is responsible for creating and emitting particles.
@@ -40,9 +39,9 @@ class ParticleSystem extends GameObject {
     // Emit the calculated number of particles.
     for (let i = 0; i < particlesToEmit && this.particlesEmitted < this.count; i++) {
       // Create a new particle with a random life duration, size, and initial velocity.
-      const lifeDuration = this.lifeDuration + Math.random() - 0.5;
-      const particle = new Particle(this.x, this.y, Math.random() * 5, Math.random() * 5, this.color, lifeDuration);
-      particle.addComponent(new Physics({ x: (Math.random() - 0.5) * 50, y: (Math.random() - 0.5) * 50 }, { x: 0, y: 0 }));
+      const lifeDuration = this.lifeDuration * (Math.random() + 0.5);
+      const particle = new Particle(this.x, this.y, Math.random() * 5 + 10, Math.random() * 5 + 10, this.color, lifeDuration);
+      particle.addComponent(new Physics({ x: (Math.random() - .5) * 4, y: (Math.random() - .5) * 4 }, { x: 0, y: 0 }));
       // Add the particle to the game.
       this.game.addGameObject(particle);
       // Increase the count of particles emitted.

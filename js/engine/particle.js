@@ -1,7 +1,6 @@
 // The required modules and classes are imported at the top of the script.
 import GameObject from '../engine/gameobject.js';
 import Renderer from '../engine/renderer.js';
-import Physics from '../engine/physics.js';
 
 // The Particle class extends GameObject and represents a particle in the game.
 class Particle extends GameObject {
@@ -13,8 +12,6 @@ class Particle extends GameObject {
     this.duration = duration;
     // Add a Renderer component to this particle. The Renderer is responsible for drawing the particle.
     this.addComponent(new Renderer(color, width, height));
-    // Add a Physics component to this particle. The Physics component is responsible for the physics of the particle.
-    this.addComponent(new Physics({ x: 0, y: 0 }, { x: 0, y: 0 }));
   }
 
   // The update method is called once per game frame and is responsible for updating the state of the particle.
@@ -27,10 +24,10 @@ class Particle extends GameObject {
       // Remove this particle from the game.
       this.game.removeGameObject(this);
     }
-
-    // Call the update method of the parent class (GameObject), which will update all of the particle's components.
     super.update(deltaTime);
   }
+
+  endTurn(){}
 }
 
 // The Particle class is then exported as the default export of this module.

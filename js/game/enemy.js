@@ -1,4 +1,5 @@
 import GameObject from '../engine/gameobject.js';
+import ParticleSystem from '../engine/particleSystem.js';
 import Renderer from '../engine/renderer.js';
 import Physics from '../engine/physics.js';
 import Tile from './tile.js';
@@ -199,6 +200,7 @@ class Enemy extends GameObject
     }
     // Subtract the damage from the enemy's hp
     this.hp -= damage;
+    this.emitBloodParticles();
     // If the enemy's hp is less than or equal to 0, remove it from the game
     if(this.hp <= 0)
     {
@@ -206,6 +208,13 @@ class Enemy extends GameObject
       this.game.removeGameObject(this.moveTo);
       this.game.removeGameObject(this.target);
     }
+  }
+  
+  emitBloodParticles()
+  {
+    // Create a particle system at the player's position they take health damage
+    const particleSystem = new ParticleSystem(this.x + .5, this.y + .5, '#800', 20, .1, 0.05);
+    this.game.addGameObject(particleSystem);
   }
 }
 
