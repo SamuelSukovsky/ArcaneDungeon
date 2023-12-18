@@ -5,10 +5,10 @@ import Component from './component.js';
 class Renderer extends Component
 {
   // The constructor initializes the renderer component with optional color, width, height, and image.
-  constructor(color = 'white', width = 64, height = 64, image = null)
+  constructor(colour = 'white', width = 64, height = 64, image = null)
   {
     super(); // Call the parent constructor.
-    this.color = color; // Initialize the color.
+    this.colour = colour; // Initialize the color.
     this.width = width; // Initialize the width.
     this.height = height; // Initialize the height.
     this.image = image; // Initialize the image.
@@ -47,7 +47,7 @@ class Renderer extends Component
     else
     {
       // If no image is provided or it has not finished loading, draw a rectangle with the specified color.
-      ctx.fillStyle = this.color;
+      ctx.fillStyle = this.colour;
       ctx.fillRect(x, y, w, h);
     }
   }

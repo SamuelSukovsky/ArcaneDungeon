@@ -3,6 +3,8 @@ import Renderer from '../engine/renderer.js';
 import Physics from '../engine/physics.js';
 import Tile from './tile.js';
 import Wall from './wall.js';
+import UItext from '../engine/uitext.js';
+import Attack from './attack.js';
 
 // Import the Images object from the 'engine' directory. This object contains all the game's image resources
 import {Images} from '../engine/resources.js';
@@ -27,18 +29,26 @@ class Enemy extends GameObject
     // Add a Physics component to this enemy, responsible for managing its physical interactions
     // Sets the initial velocity and acceleration
     this.addComponent(new Physics({ x: 0, y: 0 }, { x: 0, y: 0 }));
-    this.moveTo = new Tile(-10, -10, 'red');
+    this.healthbar = new UItext('10/10', x, y - 10, '10px Arial', '#c00', 'center');
+    this.addComponent(this.healthbar);
+    this.moveTo = new Tile(-10, -10, '#800000', '#800000');
+    this.target = new Tile(-10, -10, '#999', '#999');
 
     this.player;
     this.alert = false;
+    this.action;
+    this.countdown;
     
     // Initialize variables related to enemy's movement
-    this.speed = 4;
     this.directionVector = { x: 0, y: 0};
     this.isGhost = false;
+    
+    this.equipedWeapon;
+    this.attackVector = { x: 0, y: 0};
 
     // Initialize variables related to enemy's stats
     this.stats;
+    this.maxhp;
     this.hp;
     this.resistances = [];
     this.weaknesses = [];
@@ -47,6 +57,8 @@ class Enemy extends GameObject
   start()
   {
     this.game.addTile(this.moveTo);
+    this.game.addTile(this.target);
+    this.healthbar.setText(`${this.hp}/${this.maxhp}`)
     this.player = this.game.gameObjects.find(obj => obj instanceof Player);
   }
 
@@ -54,6 +66,17 @@ class Enemy extends GameObject
   // which represents the time passed since the last frame
   update(deltaTime)
   {
+    if(this.countdown <= 0)
+    {
+      if(this.action != null)
+      {
+        this.act();
+      }
+    }
+    else
+    {
+      this.countdown -= deltaTime;
+    }
     // Get the Physics component of this enemy
     const physics = this.getComponent(Physics);
 
@@ -70,14 +93,6 @@ class Enemy extends GameObject
       }
     }
 
-    if(!this.alert)
-    {
-      if(Math.abs(this.player.x - this.x) <= 3 + this.stats[2] && Math.abs(this.player.y - this.y) <= 3 + this.stats[2])
-      {
-        this.alert = true;
-      }
-    }
-
     // Check if the enemy is colliding with the player
     if (physics.isColliding(this.player.getComponent(Physics)))
     {
@@ -90,25 +105,40 @@ class Enemy extends GameObject
 
   endTurn()
   {
-    const physics = this.getComponent(Physics)
-    this.isGhost = false;
+    // Get the Physics component of this enemy
+    const physics = this.getComponent(Physics);
+    physics.velocity.x = 0;
+    physics.velocity.y = 0;
     super.endTurn();
-    
-    physics.velocity.x = this.directionVector.x * this.speed;
-    physics.velocity.y = this.directionVector.y * this.speed;
+
+    this.distanceToPlayer = Math.sqrt((this.player.x - this.x) * (this.player.x - this.x) + (this.player.y - this.y) * (this.player.y - this.y));
+
+    if(!this.alert)
+    {
+      if(this.distanceToPlayer <= 1 + this.stats[2])
+      {
+        this.alert = true;
+      }
+    }
+
+    this.isGhost = false;
     this.direction = -this.directionVector.x / Math.abs(this.directionVector.x);
   }
 
-  moveTowardsPlayer()
+  act(){}
+
+  move()
   {
-    this.directionVector = { x: this.player.x - this.x, y: this.player.y - this.y };
-    let distance = Math.sqrt(this.directionVector.x * this.directionVector.x + this.directionVector.y * this.directionVector.y) + 1;
-    if(distance > this.stats[1] / 2)
-    {
-      this.directionVector = { x: this.directionVector.x / distance * this.stats[1] / 2, y: this.directionVector.y / distance * this.stats[1] / 2 };
-    }
-    this.directionVector = { x: Math.floor(this.directionVector.x + .5), y: Math.floor(this.directionVector.y + .5) };
-    this.moveTo.moveTo(this.x + this.directionVector.x, this.y + this.directionVector.y);
+    // Get the Physics component of this enemy
+    const physics = this.getComponent(Physics);
+    physics.velocity.x = this.directionVector.x / this.game.timeToPause;
+    physics.velocity.y = this.directionVector.y / this.game.timeToPause;
+  }
+
+  attack()
+  {
+    let damage = this.equipedWeapon.damage.min + Math.floor(Math.random() * (this.equipedWeapon.damage.max - this.equipedWeapon.damage.min + 1)) + this.stats[this.equipedWeapon.stat];
+    this.game.addGameObject(new Attack(this.x + this.attackVector.x, this.y + this.attackVector.y, '#ccc', null, this, damage, this.equipedWeapon.damageType));
   }
 
   bounce()
@@ -117,7 +147,7 @@ class Enemy extends GameObject
     this.getComponent(Physics).velocity = { x: (Math.round(this.x) - this.x) / this.game.timeToPause, y: (Math.round(this.y) - this.y) / this.game.timeToPause };
   }
 
-  // The takeDamage method handles how the enemy takes damage (written by co-pilot)
+  // The takeDamage method handles how the enemy takes damage (written entirely by co-pilot)
   takeDamage(damage, damageType)
   {
     // If the enemy is resistant to the damage type, halve the damage
@@ -135,8 +165,9 @@ class Enemy extends GameObject
     // If the enemy's hp is less than or equal to 0, remove it from the game
     if(this.hp <= 0)
     {
-      this.game.removeGameObject(this.moveTo);
       this.game.removeGameObject(this);
+      this.game.removeGameObject(this.moveTo);
+      this.game.removeGameObject(this.target);
     }
   }
 }

@@ -1,25 +1,23 @@
 // Import classes
-import Tile from './tile.js';
+import GameObject from '../engine/gameobject.js';
+import Renderer from '../engine/renderer.js';
 import Physics from '../engine/physics.js';
 import Enemy from './enemy.js';
 import {Images} from '../engine/resources.js';
 
-class Attack extends Tile
+class Attack extends GameObject
 {
     constructor(x, y, colour, image = null, source = null, damage = 0, damageType = null)
     {
         // Call parent's constructor
-        super(x, y, colour, image);
+        super(x, y);
+        this.addComponent(new Renderer(colour, 64, 64, image));
         this.addComponent(new Physics({x:0, y:0}, {x:0, y:0}));
 
         this.source = source;
         this.damage = damage;
         this.damageType = damageType;
-    }
-
-    start()
-    {
-        console.log(this.damage);
+        this.objectsHit = [];
     }
 
     endTurn()
@@ -31,14 +29,18 @@ class Attack extends Tile
     {
         const physics = this.getComponent(Physics);
         // Check if the hitbox is colliding with a gameObject
-        const gameObjects = this.game.gameObjects.filter((gameObject) => gameObject instanceof Enemy);
+        const gameObjects = this.game.gameObjects.filter((obj) => obj instanceof Enemy);
         gameObjects.push(this.game.player);
-        for(const gameObject of gameObjects)
+        for(const obj of gameObjects)
         {
-            if(gameObject != this.source && physics.isColliding(gameObject.getComponent(Physics)))
+            if(obj != this.source && !this.objectsHit.includes(obj) && physics.isColliding(obj.getComponent(Physics)))
             {
-                gameObject.takeDamage(this.damage, this.damageType);
-                console.log(gameObject.hp);
+                obj.takeDamage(this.damage, this.damageType);
+                if(this.source.stats[0] > obj.stats[0])
+                {
+                    obj.bounce();
+                }
+                this.objectsHit.push(obj);
             }
         }
     }

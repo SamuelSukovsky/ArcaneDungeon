@@ -2,7 +2,7 @@
 import Component from './component.js';
 
 // Define the UI class which extends the Component parent class.
-class UI extends Component
+class UItext extends Component
 {
   // The constructor of the UI class.
   constructor(text, x, y, font = '20px Arial', color = 'white', textAlign = 'left', textBaseline = 'top')
@@ -44,4 +44,4 @@ class UI extends Component
 }
 
 // Export the UI class so it can be used in other files.
-export default UI;
+export default UItext;

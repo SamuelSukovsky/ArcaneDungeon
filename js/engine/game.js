@@ -24,6 +24,7 @@ class Game
     this.deltaTime = 0;
     // The game is paused by default.
     this.timeToPause = 0;
+    this.roundDuration = .25;
     // Add an event listener to resize the canvas whenever the window size changes.
     window.addEventListener('resize', () => this.resizeCanvas());
     // Instantiate a new camera without a target and with dimensions equal to the canvas size.
@@ -45,6 +46,7 @@ class Game
   // This method starts the game loop.
   start()
   {
+    this.ctx.imageSmoothingEnabled = false;
     this.isRunning = true;
     requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
   }
@@ -61,7 +63,11 @@ class Game
     {
       if(this.player.checkInput())
       {
-        this.timeToPause = .25;
+        this.timeToPause = this.roundDuration;
+        for (const gameObject of this.gameObjects)
+        {
+          gameObject.startTurn();
+        }
       }
     }
     else
@@ -111,7 +117,7 @@ class Game
     // Call each game object's update method with the delta time.
     for (const gameObject of this.gameObjects)
     {
-      gameObject.endTurn(this.deltaTime);
+      gameObject.endTurn();
     }
     // Filter out game objects that are marked for removal.
     this.gameObjects = this.gameObjects.filter(obj => !this.gameObjectsToRemove.includes(obj));

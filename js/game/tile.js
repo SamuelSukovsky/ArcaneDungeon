@@ -6,7 +6,7 @@ import {Images} from '../engine/resources.js';
 
 class Tile
 {
-  constructor(x = 0, y = 0, colour = 'white', image = null)
+  constructor(x = 0, y = 0, colour = 'white', hidden = 'grey', image = null)
   {
     // The x-coordinate of the Tile's position.
     this.x = x;
@@ -14,7 +14,10 @@ class Tile
     this.y = y;
     // An array to hold all the components that are attached to this GameObject.
     this.components = [];
-    this.addComponent(new Renderer(colour, 64, 64, image));
+    this.addComponent(new Renderer('#0F0F0F', 64, 64, image));
+    this.colour = colour;
+    this.hiddenColour = hidden;
+    this.visibility = 0;
   }
   
   // The addComponent method is used to attach a new component to this Tile.
@@ -35,16 +38,36 @@ class Tile
     return this.components.find((component) => component instanceof componentClass);
   }
 
-
   draw(ctx)
   {
-    this.components[0].draw(ctx);
+    if(this.visibility > 0)
+    {
+      this.components[0].draw(ctx);
+    }
   }
 
   moveTo(x, y)
   {
     this.x = x;
     this.y = y;
+  }
+
+  changeVisibility(visibility)
+  {
+    switch(visibility)
+    {
+      case 0:
+        this.visibility = 0;
+        break;
+      case 1:
+        this.visibility = 1;
+        this.getComponent(Renderer).colour = this.hiddenColour;
+        break;
+      case 2:
+        this.visibility = 2;
+        this.getComponent(Renderer).colour = this.colour;
+        break;
+    }
   }
 }
   

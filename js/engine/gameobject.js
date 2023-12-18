@@ -12,6 +12,7 @@ class GameObject
       this.y = y;
       // An array to hold all the components that are attached to this GameObject.
       this.components = [];
+      this.visibility = 0;
     }
   
     // The addComponent method is used to attach a new component to this GameObject.
@@ -40,9 +41,12 @@ class GameObject
     // ctx is the canvas 2D context that the components should draw themselves onto.
     draw(ctx)
     {
-      for (const component of this.components)
+      if(this.visibility > 1)
       {
-        component.draw(ctx);
+        for (const component of this.components)
+        {
+          component.draw(ctx);
+        }
       }
     }
 
@@ -51,6 +55,8 @@ class GameObject
       this.x = Math.round(this.x);
       this.y = Math.round(this.y);
     }
+
+    startTurn(){}
   
     // The getComponent method is used to get the first component of this GameObject that is an instance of the given class.
     // componentClass is the class of the component to get.

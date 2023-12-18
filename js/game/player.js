@@ -23,28 +23,33 @@ class Player extends GameObject
     this.addComponent(this.renderer);
     this.addComponent(new Physics({ x: 0, y: 0 }, { x: 0, y: 0 })); // Add physics
     this.addComponent(new Input()); // Add input for handling user input
-    this.moveTo = new Tile(-10, -10, 'red');
-    this.attack = new Tile(-10, -10, '#bbb');
+    this.moveTo = new Tile(-10, -10, '#800000', '#800000');
+    this.target = new Tile(-10, -10, '#999', '#999');
     // Initialize all the player specific properties
     this.direction = 1;
     this.lives = 3;
     this.score = 0;
-    this.speed = 4;
     this.directionVector = { x: 0, y: 0};
     this.isGhost = false;
+    this.visibility = 2;
     
     this.baseStat = 3;
     this.stats = [];
     this.statIncrease = [1, 2];
     
-    this.equipedWeapon = new Weapon({ min: 7, max: 9 }, 0, 'sharp', 1);
+    this.equipedWeapon = new Weapon({ min: 1, max: 3 }, 0, 'sharp', 1);
     this.attackVector = { x: 0, y: 0};
 
-    this.maxHP = 30;
+    this.maxStamina = 10;
+    this.stamina = 10;
+    this.maxhp = 30;
     this.hp = 30;
-    
-    this.isGamepadMovement = false;
-    this.isGamepadJump = false;
+    this.resistances = [];
+    this.weaknesses = [];
+
+    this.action = null;
+    this.countdown = 0;
+    this.resting;
   }
 
   start()
@@ -59,24 +64,27 @@ class Player extends GameObject
       }
     }
 
-    this.maxHP = this.stats[0] * 10;
-    this.hp = this.maxHP;
+    this.maxhp = this.stats[0] * 10;
+    this.hp = this.maxhp;
+    this.maxStamina = this.stats[1] * 3;
+    this.stamina = this.maxStamina;
 
     this.game.addTile(this.moveTo);
-    this.game.addTile(this.attack);
+    this.moveTo.changeVisibility(2);
+    this.game.addTile(this.target);
+    this.target.changeVisibility(2);
+
+    this.scan(1 + this.stats[2])
   }
 
   checkInput()
   {
-    const physics = this.getComponent(Physics); // Get physics component
     const input = this.getComponent(Input); // Get input component
-
-    this.handleGamepadInput(input);
     var action = false;
     
     this.directionVector = { x: input.mousePos.x, y: input.mousePos.y };
     let distance = Math.sqrt(this.directionVector.x * this.directionVector.x + this.directionVector.y * this.directionVector.y)
-    if(distance > this.stats[1] * this.speed * 8)
+    if(distance > this.stats[1] * 8 / this.game.roundDuration)
     {
       this.directionVector = { x: Math.floor(this.directionVector.x / distance * this.stats[1] * 32), y: Math.floor(this.directionVector.y / distance * this.stats[1] * 32) };
     }
@@ -90,23 +98,31 @@ class Player extends GameObject
       this.attackVector = { x: this.attackVector.x / distance * this.equipedWeapon.range, y: this.attackVector.y / distance * this.equipedWeapon.range };
     }
     this.attackVector = { x: Math.floor(this.attackVector.x + .5), y: Math.floor(this.attackVector.y + .5) };
-    this.attack.moveTo(this.x + this.attackVector.x, this.y + this.attackVector.y);
+    this.target.moveTo(this.x + this.attackVector.x, this.y + this.attackVector.y);
 
     if(input.isMouseDown(0))
     {
-      physics.velocity.x = this.directionVector.x * this.speed;
-      physics.velocity.y = this.directionVector.y * this.speed;
-      this.direction = -this.directionVector.x / Math.abs(this.directionVector.x);
-      this.attack.moveTo(-10, -10)
+      if(this.directionVector.x == 0 && this.directionVector.y == 0)
+      {
+        this.target.moveTo(-10, -10);
+        this.countdown = this.game.roundDuration - .02;
+        this.resting = this.hp + this.stamina;
+        this.action = 'rest';
+      }
+      else
+      {
+        this.direction = -this.directionVector.x / Math.abs(this.directionVector.x);
+        this.target.moveTo(-10, -10);
+        this.countdown = this.game.roundDuration * (1 / (this.stats[1] + 2));
+        this.action = 'move';
+      }
       action = true;
     }
-
-    if(input.isMouseDown(2))
+    else if(input.isMouseDown(2))
     {
       this.moveTo.moveTo(-10, -10);
-      let damage = this.equipedWeapon.damage.min + Math.floor(Math.random() * (this.equipedWeapon.damage.max - this.equipedWeapon.damage.min));
-      this.game.addGameObject(new Attack(this.x + this.attackVector.x, this.y + this.attackVector.y, '#ccc', null, this, damage, this.equipedWeapon.damageType));
-
+      this.countdown = this.game.roundDuration * (3 / (this.stats[this.equipedWeapon.stat] + 2));
+      this.action = 'attack';
       action = true;
     }
 
@@ -116,6 +132,32 @@ class Player extends GameObject
   // The update function runs every frame and contains game logic
   update(deltaTime)
   {
+    if(this.countdown <= 0)
+    {
+      if(this.action != null)
+      {
+        switch(this.action)
+        {
+          case 'rest':
+            this.rest();
+            this.action = null
+            break;
+          case 'move':
+            this.move();
+            this.action = null
+            break;
+          case 'attack':
+            this.attack();
+            this.action = null
+            break;
+        }
+      }
+    }
+    else
+    {
+      this.countdown -= deltaTime;
+    }
+
     const physics = this.getComponent(Physics); // Get physics component
     
      // Handle collisions with walls
@@ -158,6 +200,10 @@ class Player extends GameObject
       console.log('You win!');
     }
 
+    this.scan(1 + this.stats[2])
+    this.moveTo.changeVisibility(2);
+    this.target.changeVisibility(2);
+
     super.update(deltaTime);
   }
 
@@ -171,44 +217,56 @@ class Player extends GameObject
     super.endTurn();
   }
 
-  handleGamepadInput(input)
+  move()
   {
-    const gamepad = input.getGamepad(); // Get the gamepad input
     const physics = this.getComponent(Physics); // Get physics component
-    if (gamepad)
-    {
-      // Reset the gamepad flags
-      this.isGamepadMovement = false;
-      this.isGamepadJump = false;
+    physics.velocity.x = this.directionVector.x / this.game.timeToPause;
+    physics.velocity.y = this.directionVector.y / this.game.timeToPause;
+  }
 
-      // Handle movement
-      const horizontalAxis = gamepad.axes[0];
-      // Move right
-      if (horizontalAxis > 0.1)
+  attack()
+  {
+    let damage = this.equipedWeapon.damage.min + Math.floor(Math.random() * (this.equipedWeapon.damage.max - this.equipedWeapon.damage.min + 1)) + this.stats[this.equipedWeapon.stat];
+    this.game.addGameObject(new Attack(this.x + this.attackVector.x, this.y + this.attackVector.y, '#ccc', null, this, damage, this.equipedWeapon.damageType));
+  }
+
+  rest()
+  {
+    if(this.resting == this.hp + this.stamina)
+    {
+      this.stamina += Math.ceil(this.maxStamina / 2);
+      if(this.stamina > this.maxStamina)
       {
-        this.isGamepadMovement = true;
-        physics.velocity.x = 100;
-        this.direction = -1;
-      } 
-      // Move left
-      else if (horizontalAxis < -0.1)
-      {
-        this.isGamepadMovement = true;
-        physics.velocity.x = -100;
-        this.direction = 1;
-      } 
-      // Stop
-      else
-      {
-        physics.velocity.x = 0;
+        this.stamina = this.maxStamina;
       }
-      
-      // Handle jump, using gamepad button 0 (typically the 'A' button on most gamepads)
-      if (input.isGamepadButtonDown(0))
-      {
-        this.isGamepadJump = true;
-        this.startJump();
-      }
+    }
+  }
+
+  // The takeDamage method handles how the player takes damage (written entirely by co-pilot)
+  takeDamage(damage, damageType)
+  {
+    // If the player is resistant to the damage type, halve the damage
+    if(this.resistances.includes(damageType))
+    {
+      damage = Math.ceil(damage / 2);
+    }
+    // Else if the player is weak to the damage type, double the damage
+    else if(this.weaknesses.includes(damageType))
+    {
+      damage *= 2;
+    }
+    // Subtract the damage from the enemy's hp
+    this.stamina -= damage;
+    if(this.stamina < 0)
+    {
+      this.hp += this.stamina;
+      this.stamina = 0;
+    }
+    // If the player's hp is less than or equal to 0, display game over message and reload the page
+    if(this.hp <= 0)
+    {
+      alert("Game Over!");
+      location.reload();
     }
   }
 
@@ -236,6 +294,40 @@ class Player extends GameObject
   {
     this.isGhost = true;
     this.getComponent(Physics).velocity = { x: (Math.round(this.x) - this.x) / this.game.timeToPause, y: (Math.round(this.y) - this.y) / this.game.timeToPause };
+  }
+
+  scan(range)
+  {
+    var objects = this.game.tiles;
+    for (const obj of objects)
+    {
+      if(Math.sqrt((obj.x - this.x) * (obj.x - this.x) + (obj.y - this.y) * (obj.y - this.y)) <  range)
+      {
+        obj.changeVisibility(2);
+      }
+      else if (obj.visibility > 0)
+      {
+        obj.changeVisibility(1);
+      }
+    }
+    objects = this.game.gameObjects;
+    for (const obj of objects)
+    {
+      if(Math.sqrt((obj.x - this.x) * (obj.x - this.x) + (obj.y - this.y) * (obj.y - this.y)) <  range)
+      {
+        obj.visibility = 2;
+      }
+      else if (obj.visibility > 0)
+      {
+        obj.visibility = 1;
+      }
+
+      if(obj instanceof Enemy)
+      {
+        obj.moveTo.changeVisibility(obj.visibility - 1);
+        obj.target.changeVisibility(obj.visibility - 1);
+      }
+    }
   }
   
   emitCollectParticles()
