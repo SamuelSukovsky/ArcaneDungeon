@@ -21,20 +21,27 @@ class Level extends Game
     // Set the width of corridors
     this.mapScale = 3;
 
+    // Array of enemy objects to spawn
     this.enemies = [];
 
+    // X and Y coordinates of the player's spawn
     this.spawnX;
     this.spawnY;
 
+    // Generate the map
     this.generate();
+    // Reset player to the spawn
     this.player.resetPlayerState(((this.spawnX * 3 - 2) * this.mapScale + Math.floor(this.mapScale / 2)), ((this.spawnY * 3 - 2) * this.mapScale + Math.floor(this.mapScale / 2)));
+    // Add the player to the game
     this.addGameObject(this.player);
     
     // Add the player UI object to the game
     this.addGameObject(new PlayerUI(10, 10));
 
+    // For each enemy in the array
     for(const enemy of this.enemies)
     {
+      // Add the enemy to the game
       this.addGameObject(enemy);
     }
 
@@ -66,7 +73,7 @@ class Level extends Game
       mapCore[0][i] = 'X';
       mapCore[this.mapY + 1][i] = 'X';
     }
-    for(let i = 0; i < this.mapY + 2; i++)
+    for(let i = 0; i < this.mapY + 2; i++)  // Written by co-pilot
     {
       mapCore[i][0] = 'X';
       mapCore[i][this.mapX + 1] = 'X';
@@ -89,7 +96,7 @@ class Level extends Game
       
       // Place the starting corridor
       this.spawnX = Math.floor(Math.random() * this.mapX) + 1;
-      this.spawnY = Math.floor(Math.random() * this.mapY) + 1;
+      this.spawnY = Math.floor(Math.random() * this.mapY) + 1;  // Written by co-pilot
       var availableRooms = this.legalRoomTypes(map, this.spawnX, this.spawnY, endCorridors);
       map[this.spawnY][this.spawnX] = availableRooms[Math.floor(Math.random() * availableRooms.length)];
 
@@ -191,7 +198,7 @@ class Level extends Game
       availableRooms = availableRooms.filter(item => !item.includes('S'));
     }
 
-    // If the left cell has an east exit, all available rooms must have a west exit
+    // If the left cell has an east exit, all available rooms must have a west exit   (Written by co-pilot)
     if(map[y][x - 1].includes('E'))
     {
       availableRooms = availableRooms.filter(item => item.includes('W'));
@@ -202,7 +209,7 @@ class Level extends Game
       availableRooms = availableRooms.filter(item => !item.includes('W'));
     }
 
-    // If the right cell has a west exit, all available rooms must have an east exit
+    // If the right cell has a west exit, all available rooms must have an east exit   (Written by co-pilot)
     if(map[y][x + 1].includes('W'))
     {
       availableRooms = availableRooms.filter(item => item.includes('E'));
@@ -227,17 +234,17 @@ class Level extends Game
     {
       adjacent++;
     }
-    // If the below cell has a north exit, return true
+    // If the below cell has a north exit, return true   (Written by co-pilot)
     if(map[y + 1][x].includes('N'))
     {
       adjacent++;
     }
-    // If the left cell has an east exit, return true
+    // If the left cell has an east exit, return true   (Written by co-pilot)
     if(map[y][x - 1].includes('E'))
     {
       adjacent++;
     }
-    // If the right cell has a west exit, return true
+    // If the right cell has a west exit, return true   (Written by co-pilot)
     if(map[y][x + 1].includes('W'))
     {
       adjacent++;
@@ -256,12 +263,12 @@ class Level extends Game
       // Spawn the room tiles
       for(let i = 0; i < this.mapScale; i++)
       {
-        for(let j = 0; j < this.mapScale; j++)
+        for(let j = 0; j < this.mapScale; j++)       // (Written by co-pilot)
         {
           this.addTile(new Tile(((x * 3 + 1) * this.mapScale + j), ((y * 3 + 1) * this.mapScale + i), '#A0522D', '#6B3508'));
         }
       }
-      // Create room edge walls
+      // Create room corner walls
       this.addTile(new Wall(((x * 3 + 1) * this.mapScale - 1), ((y * 3 + 1) * this.mapScale - 1), '#222', '#111'));
       this.addTile(new Wall(((x * 3 + 2) * this.mapScale), ((y * 3 + 1) * this.mapScale - 1), '#222', '#111'));
       this.addTile(new Wall(((x * 3 + 1) * this.mapScale - 1), ((y * 3 + 2) * this.mapScale), '#222', '#111'));
@@ -297,7 +304,7 @@ class Level extends Game
           }
         }
       }
-      // Else create the north wall
+      // Else create the north wall                     (Written by co-pilot)
       else
       {
         for(let i = 0; i < this.mapScale; i++)
@@ -306,7 +313,7 @@ class Level extends Game
         }
       }
 
-      // If the room has a south exit
+      // If the room has a south exit                   (Written by co-pilot)
       if(roomType.includes('S'))
       {
         // Spawn the south exit tiles
@@ -328,7 +335,7 @@ class Level extends Game
           }
         }
       }
-      // Else create the south wall
+      // Else create the south wall                     (Written by co-pilot)
       else
       {
         for(let i = 0; i < this.mapScale; i++)
@@ -337,7 +344,7 @@ class Level extends Game
         }
       }
        
-      // If the room has an east exit
+      // If the room has an east exit                   (Written by co-pilot)
       if(roomType.includes('E'))
       {
         // Spawn the east exit tiles
@@ -359,7 +366,7 @@ class Level extends Game
           }
         }
       }
-      // Else create the east wall
+      // Else create the east wall                      (Written by co-pilot)
       else
       {
         for(let i = 0; i < this.mapScale; i++)
@@ -368,7 +375,7 @@ class Level extends Game
         }
       }
 
-      // If the room has a west exit
+      // If the room has a west exit                    (Written by co-pilot)
       if(roomType.includes('W'))
       {
         // Spawn the west exit tiles
@@ -390,7 +397,7 @@ class Level extends Game
           } 
         }
       }
-      // Else create the west wall
+      // Else create the west wall                      (Written by co-pilot)
       else
       {
         for(let i = 0; i < this.mapScale; i++)

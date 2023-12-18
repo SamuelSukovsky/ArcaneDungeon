@@ -11,35 +11,48 @@ class Attack extends GameObject
     {
         // Call parent's constructor
         super(x, y);
+        // Add a Renderer component
         this.addComponent(new Renderer(colour, 64, 64, image));
+        // Add a Physics component to handle interactions
         this.addComponent(new Physics({x:0, y:0}, {x:0, y:0}));
 
+        // Set the source of the attack
         this.source = source;
+        // Set the damage of the attack
         this.damage = damage;
+        // Set the damage type of the attack
         this.damageType = damageType;
+        // Create an array to hold all the objects already hit by the attack
         this.objectsHit = [];
     }
 
+    // At the end of turn, remove the attack from the game
     endTurn()
     {
         this.game.removeGameObject(this);
     }
 
-    update(deltaTime)
+    // Each frame
+    update()
     {
-        const physics = this.getComponent(Physics);
-        // Check if the hitbox is colliding with a gameObject
+        const physics = this.getComponent(Physics); // Get the physics component
+        // Get all enemy objects and the player
         const gameObjects = this.game.gameObjects.filter((obj) => obj instanceof Enemy);
         gameObjects.push(this.game.player);
+        // For each object
         for(const obj of gameObjects)
         {
+            // If the object is not the source of the attack, the object hasn't already been hit, and the object is colliding with the attack
             if(obj != this.source && !this.objectsHit.includes(obj) && physics.isColliding(obj.getComponent(Physics)))
             {
+                // Deal damage to the object
                 obj.takeDamage(this.damage, this.damageType);
+                // If the attack's source has a higher strength than the target, stagger the target
                 if(this.source.stats[0] > obj.stats[0])
                 {
                     obj.bounce();
                 }
+                // Add the object to the list of objects hit
                 this.objectsHit.push(obj);
             }
         }

@@ -29,6 +29,7 @@ class Game
     window.addEventListener('resize', () => this.resizeCanvas());
     // Instantiate a new camera without a target and with dimensions equal to the canvas size.
     this.camera = new Camera(null, this.canvas.width, this.canvas.height);
+    // Instantiate the player.
     this.player = new Player(0, 0);
     // Adjust the size of the canvas to match the window size.
     this.resizeCanvas();
@@ -37,8 +38,10 @@ class Game
   // This method resizes the canvas to fill the window, with a small margin.
   resizeCanvas()
   {
+    // Change the canvas dimensions to match the window dimensions.
     this.canvas.width = window.innerWidth - 50;
     this.canvas.height = window.innerHeight - 50;
+    // Recenter the camera on the canvas.
     this.camera.width = this.canvas.width;
     this.camera.height = this.canvas.height;
   }
@@ -46,6 +49,7 @@ class Game
   // This method starts the game loop.
   start()
   {
+    // Disable anti-aliasing to improve pixel art rendering.
     this.ctx.imageSmoothingEnabled = false;
     this.isRunning = true;
     requestAnimationFrame((timestamp) => this.gameLoop(timestamp));
@@ -59,31 +63,41 @@ class Game
     // Update the last frame time.
     this.lastFrameTime = currentFrameTime;
 
+    // If the game is between turns
     if(this.timeToPause <= 0)
     {
+      // Check if the player has pressed a key
       if(this.player.checkInput())
       {
+        // Unpause the game
         this.timeToPause = this.roundDuration;
+        // Trigger the startTurn method of all game objects
         for (const gameObject of this.gameObjects)
         {
           gameObject.startTurn();
         }
       }
     }
+    // Else
     else
     {
+      // If the time to pause is less than the time passed since the last frame
       if(this.timeToPause <= this.deltaTime)
       {
+        // Set deltaTime to the time remaining
         this.deltaTime = this.timeToPause;
         // Update all game objects and the camera.
         this.update();
+        // Pause the game
         this.pause();
       }
+      // Else
       else
       {
         // Update all game objects and the camera.
         this.update();
       }
+      // Decrement the time to pause
       this.timeToPause -= this.deltaTime;
     }
 
@@ -105,7 +119,7 @@ class Game
     }
     // Filter out game objects that are marked for removal.
     this.gameObjects = this.gameObjects.filter(obj => !this.gameObjectsToRemove.includes(obj));
-    // Filter out game objects that are marked for removal.
+    // Filter out tiles that are marked for removal.
     this.tiles = this.tiles.filter(obj => !this.gameObjectsToRemove.includes(obj));
     // Clear the list of game objects to remove.
     this.gameObjectsToRemove = [];
@@ -121,6 +135,8 @@ class Game
     }
     // Filter out game objects that are marked for removal.
     this.gameObjects = this.gameObjects.filter(obj => !this.gameObjectsToRemove.includes(obj));
+    // Filter out tiles that are marked for removal.
+    this.tiles = this.tiles.filter(obj => !this.gameObjectsToRemove.includes(obj));
     // Clear the list of game objects to remove.
     this.gameObjectsToRemove = [];
   }
@@ -137,7 +153,7 @@ class Game
     this.ctx.translate(-this.camera.x, -this.camera.y);
 
 
-    // Draw each game object on the canvas.
+    // Draw each tile on the canvas.
     for (const tile of this.tiles)
     {
       tile.draw(this.ctx);
@@ -152,7 +168,7 @@ class Game
     this.ctx.restore();
   }
 
-  // This method adds a game object to the game.
+  // This method adds a tile to the game.
   addTile(tile)
   {
     // Add the game object to the array of game objects.
@@ -164,6 +180,7 @@ class Game
   {
     // Set the game object's game property to this game instance.
     gameObject.game = this;
+    // Call the game object's start method.
     gameObject.start();
     // Add the game object to the array of game objects.
     this.gameObjects.push(gameObject);
@@ -174,25 +191,6 @@ class Game
   {
     // Add the game object to the array of game objects to remove.
     this.gameObjectsToRemove.push(gameObject);
-  }
-
-  // This method resets the game to its initial state and then restarts it.
-  reset()
-  {
-    // Stop the game.
-    this.isRunning = false;
-
-    // Reset all game objects that have a reset method.
-    for (const gameObject of this.gameObjects)
-    {
-      if (gameObject.reset)
-      {
-        gameObject.reset();
-      }
-    }
-
-    // Restart the game.
-    this.start();
   }
 }
 

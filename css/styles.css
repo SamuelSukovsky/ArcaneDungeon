@@ -6,7 +6,7 @@ body
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: rgb(15, 15, 15); /* Red background color */
+    background-color: rgb(15, 15, 15); /* Changed background colour to dark grey */
 }
 
 /* Add border to the canvas element */

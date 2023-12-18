@@ -13,6 +13,7 @@ class Wall extends Tile
     {
         // Call parent's constructor
         super(x, y, colour, hidden, image);
+        // Add a Physics component to this enemy to make it solid
         this.addComponent(new Physics({x:0, y:0}, {x:0, y:0}));
     }
 }

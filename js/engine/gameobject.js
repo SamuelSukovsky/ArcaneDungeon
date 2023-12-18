@@ -12,6 +12,7 @@ class GameObject
       this.y = y;
       // An array to hold all the components that are attached to this GameObject.
       this.components = [];
+      // The visibility of the GameObject. (0 = not visible, 1 = hidden, 2 = visible)
       this.visibility = 0;
     }
   
@@ -41,6 +42,7 @@ class GameObject
     // ctx is the canvas 2D context that the components should draw themselves onto.
     draw(ctx)
     {
+      // If the GameObject is currently visible, draw it
       if(this.visibility > 1)
       {
         for (const component of this.components)
@@ -50,12 +52,14 @@ class GameObject
       }
     }
 
+    // At the end of each turn, round the position of the GameObject to the nearest integer.
     endTurn()
     {
       this.x = Math.round(this.x);
       this.y = Math.round(this.y);
     }
 
+    // The startTurn method, to be overwritten by child classes
     startTurn(){}
   
     // The getComponent method is used to get the first component of this GameObject that is an instance of the given class.
@@ -66,7 +70,8 @@ class GameObject
       return this.components.find((component) => component instanceof componentClass);
     }
 
-    takeDamage(damage, damageType){}
+    // The takeDamage method, to be overwritten by child classes
+    takeDamage(){}
   }
   
   // The GameObject class is exported as the default export of this module.
